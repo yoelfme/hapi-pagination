@@ -27,6 +27,34 @@ const register = function () {
 
     server.route({
         method: 'GET',
+        path: '/has-next-page',
+        handler: (request, h) => h.response({
+            results: [],
+            hasNext: true
+        })
+    });
+
+    server.route({
+        method: 'GET',
+        path: '/has-previous-page',
+        handler: (request, h) => h.response({
+            results: [],
+            hasPrevious: true
+        })
+    });
+    
+    server.route({
+        method: 'GET',
+        path: '/not-has-limit',
+        handler: (request, h) => h.response({
+            results: [],
+            hasNext: true,
+            hasLimit: false
+        })
+    })
+
+    server.route({
+        method: 'GET',
         path: '/',
         handler: (request, h) => []
     });
@@ -46,7 +74,6 @@ const register = function () {
             return h.paginate([], 0);
         }
     });
-
 
     server.route({
         method: 'GET',
@@ -2367,3 +2394,64 @@ describe('Include custom headers', () => {
         expect(response.meta.totalCount).to.equal(expectedCount);
     });  
 });
+
+describe('Allow to build next and previous URL without totalCount', () => {
+    it('Should include next page URL if we pass the hasNext property in the response', async () => {
+        const server = register();
+        await server.register(require(pluginName));
+
+        const request = {
+            method: 'GET',
+            url: '/has-next-page'
+        };
+
+        const { result: response } = await server.inject(request);
+
+        expect(response.meta.next).not.to.be.null();
+    })
+
+    it('Should include previous page URL if we pass the hasPrevious property in the response', async () => {
+        const server = register();
+        await server.register(require(pluginName));
+
+        const request = {
+            method: 'GET',
+            url: '/has-previous-page?page=2'
+        };
+
+        const { result: response } = await server.inject(request);
+
+        expect(response.meta.previous).not.to.be.null();
+    })
+
+    it('Should set the previous page URL as null, if current page is less than 1 even if we pass the hasPrevious property', async () => {
+        const server = register();
+        await server.register(require(pluginName));
+
+        const request = {
+            method: 'GET',
+            url: '/has-previous-page'
+        };
+
+        const { result: response } = await server.inject(request);
+
+        expect(response.meta.previous).to.be.null();
+    })
+})
+
+describe('Allow to not set the limit query param', async () => {
+    it('Should not include the limit query param in the meta URLs if we pass the property hasLimit', async () => {
+        const server = register();
+        await server.register(require(pluginName));
+
+        const request = {
+            method: 'GET',
+            url: '/not-has-limit'
+        };
+
+        const { result: response } = await server.inject(request);
+
+        expect(response.meta.self).not.to.be.null();
+        expect(response.meta.self).not.include('limit=')
+    })
+})
