@@ -42,7 +42,7 @@ const register = function () {
             hasPrevious: true
         })
     });
-    
+
     server.route({
         method: 'GET',
         path: '/not-has-limit',
@@ -2392,7 +2392,7 @@ describe('Include custom headers', () => {
         expect(response.meta.count).to.equal(expectedCount);
         expect(response.meta.pageCount).to.equal(expectedPageCount);
         expect(response.meta.totalCount).to.equal(expectedCount);
-    });  
+    });
 });
 
 describe('Allow to build next and previous URL without totalCount', () => {
@@ -2439,7 +2439,7 @@ describe('Allow to build next and previous URL without totalCount', () => {
     })
 })
 
-describe('Allow to not set the limit query param', async () => {
+describe('Allow to not set the limit query param focus', async () => {
     it('Should not include the limit query param in the meta URLs if we pass the property hasLimit', async () => {
         const server = register();
         await server.register(require(pluginName));
@@ -2453,5 +2453,6 @@ describe('Allow to not set the limit query param', async () => {
 
         expect(response.meta.self).not.to.be.null();
         expect(response.meta.self).not.include('limit=')
+        expect(response.meta.self).to.include('page=')
     })
 })
